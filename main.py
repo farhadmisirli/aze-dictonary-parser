@@ -2,44 +2,42 @@ import requests
 from bs4 import BeautifulSoup
 import mysql.connector
 
+# letters
+letters = ['a', 'b', 'c', 'ç', 'd', 'e', 'ə', 'f', 'g', 'h', 'x', 'i', 'j', 'k', 'q', 'l', 'm', 'n', 'o', 'ö', 'p', 'r', 's', 'ş', 't', 'u', 'ü', 'v', 'y', 'z']
+
 # mysql connection
 cnx = mysql.connector.connect(user='root', database='aze_dictonary', password='secret123')
 cursor = cnx.cursor()
 
+for letter in letters:
 
-for i in range(40, 50):
-    url = f"https://obastan.com/azerbaycan-dilinin-izahli-lugeti/a/?l=az&p={i}"
+    i, flag = 1, True
 
-    result = []
+    while flag:
+        url = f"https://obastan.com/azerbaycan-dilinin-izahli-lugeti/a/?l=az&p={i}"
 
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, features="html.parser")
-    words = soup.find_all("li", {'class': 'wli'})
+        result = []
 
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, features="html.parser")
+        words = soup.find_all("li", {'class': 'wli'})
 
-    for word in words:
-        title = word.find("h3", {'class': 'wli-title'})
-        description = word.find("p", {'class': 'wli-description'})
-        result.append(
-            {
-                "title": title.text,
-                "description": description.text,
-            }
-        )
+        for word in words:
+            title = word.find("h3", {'class': 'wli-title'})
+            description = word.find("p", {'class': 'wli-description'})
 
-    for item in result:
-        cursor.execute("INSERT INTO words(text, description) VALUES (%s, %s)", (item["title"], item["description"]))
+            result.append(
+                {
+                    "title": title.text,
+                    "description": description.text,
+                }
+            )
 
-    cnx.commit()
-    print(f"{len(result)} rows inserted..")
-# query = "SELECT * FROM words"
-#
-# cursor.execute(query)
-#
-# print(cursor.fetchall())
+        for item in result:
+            cursor.execute("INSERT INTO words(text, description) VALUES (%s, %s)", (item["title"], item["description"]))
 
-#
-# cursor.close()
-# cnx.close()
+        cnx.commit()
+        print(f"{len(result)} rows inserted..")
 
+        i += 1
 
